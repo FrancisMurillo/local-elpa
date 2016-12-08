@@ -42,8 +42,8 @@
   (unless smex-initialized-p
     (smex-initialize))
   (and smex-auto-update
-       (smex-detect-new-commands)
-       (smex-update)))
+     (smex-detect-new-commands)
+     (smex-update)))
 
 (defun helm-smex--execute-command (command)
   (let ((prefix-arg current-prefix-arg))
@@ -58,6 +58,39 @@
 (defclass helm-smex-source (helm-source-sync)
   ((init :initform 'helm-smex--init)
    (candidates :initform 'smex-ido-cache)
+
+   (candidate-transformer
+    :initform
+    (lambda (candidates)
+      "This adds keybinding mapping."
+      (require 'helm-command)
+
+      (lexical-let* ((candidates candidates)
+          (key-mapping
+           (let ((table (make-hash-table
+                       :test 'equal
+                       :size (length candidates))))
+             (mapc
+              (lambda (pair)
+                (let ((key (car pair))
+                    (command (symbol-name (cdr pair))))
+                  (puthash
+                   (symbol-name command
+                                (format "%s (%s)"
+                                        command
+                                        (propertize
+                                         key
+                                         'face 'helm-M-x-key)))
+                   table)))
+              (helm-M-x-current-mode-map-alist))
+             table)))
+        (mapcar
+         (lambda (candidate)
+           (cons
+            (gethash candidate key-mapping candidate)
+            candidate))
+         candidates))))
+
    (match :initform 'helm-fuzzy-match)
    (action :initform 'helm-smex--execute-command)
    (coerce :initform 'intern)
@@ -69,9 +102,9 @@
   (unless smex-initialized-p
     (smex-initialize))
   (let ((commands
-         (delete-dups
-          (append (smex-extract-commands-from-keymap map)
-                  (smex-extract-commands-from-features mode)))))
+       (delete-dups
+        (append (smex-extract-commands-from-keymap map)
+                (smex-extract-commands-from-features mode)))))
     (mapcar #'symbol-name
             (smex-sort-according-to-cache commands))))
 
@@ -86,8 +119,8 @@
 (defun helm-smex-major-mode-commands ()
   (interactive)
   (let ((helm--mode-line-display-prefarg t)
-        (candidates-fn (apply #'helm-smex--major-mode-commands
-                              (list major-mode (current-local-map)))))
+      (candidates-fn (apply #'helm-smex--major-mode-commands
+                        (list major-mode (current-local-map)))))
     (helm :buffer "*helm-smex*"
           :sources (helm-make-source
                        "Smex-major-mode-commands" 'helm-smex-source

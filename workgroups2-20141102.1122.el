@@ -487,7 +487,7 @@ When a buffer can't be restored, when creating a blank wg."
 ;; Crazy stuff...
 ;;
 (defcustom wg-associate-blacklist (list "*helm mini*" "*Messages*" "*scratch*"
-                                     "*helm action*")
+                                        "*helm action*")
   "Do not autoassociate these buffers."
   :type 'list
   :group 'workgroups)
@@ -500,11 +500,11 @@ When a buffer can't be restored, when creating a blank wg."
 Pass FRAME to it.
 Remove file and dired buffers that are not associated with workgroup."
   (let ((res (wg-buffer-list-emacs frame))
-      (wg-buf-uids (wg-workgroup-associated-buf-uids)))
+        (wg-buf-uids (wg-workgroup-associated-buf-uids)))
     (--remove (and (or (buffer-file-name it)
-                    (eq (buffer-local-value 'major-mode it) 'dired-mode))
-                 ;;(not (member b wg-buffers))
-                 (not (member (wg-buffer-uid-or-add it) wg-buf-uids)))
+                       (eq (buffer-local-value 'major-mode it) 'dired-mode))
+                   ;;(not (member b wg-buffers))
+                   (not (member (wg-buffer-uid-or-add it) wg-buf-uids)))
               res)))
 
 (defconst wg-buffer-list-function (symbol-function 'buffer-list))
@@ -666,7 +666,7 @@ features but is fucking unstable, so disabled by default"
   "Return a copy of STRING fontified according to FACEKEY.
 FACEKEY must be a key in `wg-face-abbrevs'."
   (let ((face (wg-aget wg-face-abbrevs facekey))
-      (string  (copy-sequence string)))
+        (string  (copy-sequence string)))
     (unless face (error "No face with key %s" facekey))
     (if (not wg-use-faces) string
       (put-text-property 0 (length string) 'face face string)
@@ -683,7 +683,7 @@ Anything else is formatted with %s to produce a string."
   `(concat
     ,@(wg-docar (spec specs)
         (cond ((and (consp spec)
-                  (keywordp (car spec)))
+                    (keywordp (car spec)))
                `(wg-add-face ,@spec))
               ;;((listp spec) (cdr (eval spec)))
               ;;((listp spec)
@@ -816,7 +816,7 @@ Cribbed from `org-id-b36-to-int'."
   (let ((result 0))
     (mapc (lambda (i)
             (setq result (+ (* result 36)
-                         (wg-b36-to-int-one-digit i))))
+                            (wg-b36-to-int-one-digit i))))
           str)
     result))
 
@@ -882,7 +882,7 @@ Keywords supported: :test :key
 
 \(fn LIST [KEYWORD VALUE]...)"
   (let ((test (or (plist-get keys :test) 'eq))
-      (key (or (plist-get keys :key) 'identity)))
+        (key (or (plist-get keys :key) 'identity)))
     (cl-loop for (elt . rest) on list
              for elt = (funcall key elt)
              when (cl-find elt rest :test test :key key) return elt)))
@@ -904,9 +904,9 @@ If PARAM is not found, return DEFAULT which defaults to nil."
 (defun wg-aput (alist key value)
   "Return a new alist from ALIST with KEY's value set to VALUE."
   (let* ((found nil)
-      (new (wg-docar (kvp alist)
-             (if (not (eq key (car kvp))) kvp
-               (setq found (cons key value))))))
+         (new (wg-docar (kvp alist)
+                (if (not (eq key (car kvp))) kvp
+                  (setq found (cons key value))))))
     (if found new (cons (cons key value) new))))
 
 (defun wg-aremove (alist key)
@@ -923,7 +923,7 @@ If PARAM is not found, return DEFAULT which defaults to nil."
 (defun wg-get-buffer (buffer-or-name)
   "Return BUFFER-OR-NAME's buffer, or error."
   (or (get-buffer buffer-or-name)
-     (error "%S does not identify a buffer" buffer-or-name)))
+      (error "%S does not identify a buffer" buffer-or-name)))
 
 (defun wg-buffer-name (buffer-or-name)
   "Return BUFFER-OR-NAME's `buffer-name', or error."
@@ -948,7 +948,7 @@ Note: this doesn't yet work with :conc-name, and possibly other
 options."
   (declare (indent 2))
   (let* ((name (if (consp name-form) (car name-form) name-form))
-      (prefixed-name (wg-symcat prefix "-" name)))
+         (prefixed-name (wg-symcat prefix "-" name)))
     (cl-labels ((rebind (opstr)
                         (let ((oldfnsym (wg-symcat opstr "-" prefix "-" name)))
                           `((fset ',(wg-symcat prefix "-" opstr "-" name)
@@ -1091,7 +1091,7 @@ package PKG.  In PARAMS you give local variables to save and a
 deserialization function."
   (declare (indent 2))
   `(let ((mode-str (symbol-name ,mode))
-       (args ,params))
+         (args ,params))
 
      (eval `(defun ,(intern (format "wg-deserialize-%s-buffer" mode-str)) (buffer)
               "DeSerialization function created with `wg-support'.
@@ -1099,8 +1099,8 @@ Gets saved variables and runs code to restore a BUFFER."
               (when (require ',,pkg nil 'noerror)
                 (wg-dbind (this-function variables) (wg-buf-special-data buffer)
                   (let ((default-directory (car variables))
-                      (df (cdr (assoc 'deserialize ',,params)))
-                      (user-vars (cadr variables)))
+                        (df (cdr (assoc 'deserialize ',,params)))
+                        (user-vars (cadr variables)))
                     (if df
                         (funcall df buffer user-vars)
                       (get-buffer-create wg-default-buffer))
@@ -1113,13 +1113,13 @@ Saves some variables to restore a BUFFER later."
                 (with-current-buffer buffer
                   (when (eq major-mode ',,mode)
                     (let ((sf (cdr (assoc 'serialize ',,params)))
-                        (save (cdr (assoc 'save ',,params))))
+                          (save (cdr (assoc 'save ',,params))))
                       (list ',(intern (format "wg-deserialize-%s-buffer" mode-str))
-                         (list default-directory
-                            (if sf
-                                (funcall sf buffer)
-                              (if save (mapcar 'wg-get-value save)))
-                            ))))))))
+                            (list default-directory
+                                  (if sf
+                                      (funcall sf buffer)
+                                    (if save (mapcar 'wg-get-value save)))
+                                  ))))))))
      ;; Maybe change a docstring for functions
      ;;(put (intern (format "wg-serialize-%s-buffer" (symbol-name mode)))
      ;;     'function-documentation
@@ -1141,10 +1141,10 @@ Saves some variables to restore a BUFFER later."
 (defun wg-current-session (&optional noerror)
   "Return `wg-current-session' or error unless NOERROR."
   (or wg-current-session
-     (if workgroups-mode
-         (unless noerror (error "No session is defined"))
-       (unless noerror
-         (error "Activate workgroups with (workgroups-mode 1)")))))
+      (if workgroups-mode
+          (unless noerror (error "No session is defined"))
+        (unless noerror
+          (error "Activate workgroups with (workgroups-mode 1)")))))
 
 ;; locate-dominating-file
 (defun wg-get-first-existing-dir (&optional dir)
@@ -1154,7 +1154,7 @@ If not - try to go to the parent dir and do the same."
     (if (file-directory-p d) d
       (let* ((cur d) (parent (file-name-directory (directory-file-name cur))))
         (while (and (> (length cur) (length parent))
-                  (not (file-directory-p parent)))
+                    (not (file-directory-p parent)))
           (message "Test %s" parent)
           (setq cur parent)
           (setq parent (file-name-directory (directory-file-name cur))))
@@ -1260,7 +1260,7 @@ If not - try to go to the parent dir and do the same."
 (defun wg-pickel-object-serializer (obj)
   "Return the object serializer for the `type-of' OBJ."
   (or (wg-aget wg-pickel-object-serializers (type-of obj))
-     (error "Invalid type: %S" (type-of obj))))
+      (error "Invalid type: %S" (type-of obj))))
 
 (defun wg-pickel-link-serializer (obj)
   "Return the link serializer for the `type-of' OBJ."
@@ -1269,12 +1269,12 @@ If not - try to go to the parent dir and do the same."
 (defun wg-pickel-object-deserializer (key)
   "Return the object deserializer for type key KEY, or error."
   (or (wg-aget wg-pickel-object-deserializers key)
-     (error "Invalid object deserializer key: %S" key)))
+      (error "Invalid object deserializer key: %S" key)))
 
 (defun wg-pickel-link-deserializer (key)
   "Return the link deserializer for type key KEY, or error."
   (or (wg-aget wg-pickel-link-deserializers key)
-     (error "Invalid link deserializer key: %S" key)))
+      (error "Invalid link deserializer key: %S" key)))
 
 
 
@@ -1283,7 +1283,7 @@ If not - try to go to the parent dir and do the same."
 (defun wg-pickel-make-bindings-table (obj)
   "Return a table binding unique subobjects of OBJ to ids."
   (let ((binds (make-hash-table :test 'eq))
-      (id -1))
+        (id -1))
     (cl-labels
         ((inner (obj)
                 (unless (gethash obj binds)
@@ -1329,7 +1329,7 @@ If not - try to go to the parent dir and do the same."
 (defun wg-pickel-marker-serializer (marker)
   "Return MARKER's data."
   (list 'm (list (marker-position marker)
-           (wg-add-buffer-to-buf-list (marker-buffer marker)))))
+                 (wg-add-buffer-to-buf-list (marker-buffer marker)))))
 (defun wg-pickel-deserialize-marker (data)
   "Return marker from it's DATA."
   (let ((m (make-marker)))
@@ -1346,9 +1346,9 @@ If not - try to go to the parent dir and do the same."
 (defun wg-pickel-cons-link-serializer (cons binds)
   "Return the serialization of CONS's links in BINDS."
   (list 'c
-     (gethash cons binds)
-     (gethash (car cons) binds)
-     (gethash (cdr cons) binds)))
+        (gethash cons binds)
+        (gethash (car cons) binds)
+        (gethash (cdr cons) binds)))
 (defun wg-pickel-cons-link-deserializer (cons-id car-id cdr-id binds)
   "Relink a cons cell with its car and cdr in BINDS."
   (let ((cons (gethash cons-id binds)))
@@ -1371,11 +1371,11 @@ If not - try to go to the parent dir and do the same."
   (let (result)
     (dotimes (i (length vector) result)
       (setq result
-         (nconc (list 'v
-                   (gethash vector binds)
-                   i
-                   (gethash (aref vector i) binds))
-                result)))))
+            (nconc (list 'v
+                         (gethash vector binds)
+                         i
+                         (gethash (aref vector i) binds))
+                   result)))))
 (defun wg-pickel-vector-link-deserializer (vector-id index value-id binds)
   "Relink a vector with its elements in BINDS."
   (aset (gethash vector-id binds) index (gethash value-id binds)))
@@ -1385,11 +1385,11 @@ If not - try to go to the parent dir and do the same."
 (defun wg-pickel-hash-table-serializer (table)
   "Return HASH-TABLE's serialization."
   (list 'h
-     (hash-table-test table)
-     (hash-table-size table)
-     (hash-table-rehash-size table)
-     (hash-table-rehash-threshold table)
-     (hash-table-weakness table)))
+        (hash-table-test table)
+        (hash-table-size table)
+        (hash-table-rehash-size table)
+        (hash-table-rehash-threshold table)
+        (hash-table-weakness table)))
 (defun wg-pickel-deserialize-hash-table (test size rsize rthresh weakness)
   "Return a new hash-table with the specified properties."
   (make-hash-table :test test :size size :rehash-size rsize
@@ -1399,11 +1399,11 @@ If not - try to go to the parent dir and do the same."
   (let (result)
     (wg-dohash (key value table result)
       (setq result
-         (nconc (list 'h
-                   (gethash key binds)
-                   (gethash value binds)
-                   (gethash table binds))
-                result)))))
+            (nconc (list 'h
+                         (gethash key binds)
+                         (gethash value binds)
+                         (gethash table binds))
+                   result)))))
 (defun wg-pickel-hash-table-link-deserializer (key-id value-id table-id binds)
   "Relink a hash-table with its keys and values in BINDS."
   (puthash (gethash key-id binds)
@@ -1422,8 +1422,8 @@ If not - try to go to the parent dir and do the same."
   (let (result)
     (wg-dohash (obj id binds result)
       (setq result
-         (nconc (list id (funcall (wg-pickel-object-serializer obj) obj))
-                result)))))
+            (nconc (list id (funcall (wg-pickel-object-serializer obj) obj))
+                   result)))))
 (defun wg-pickel-deserialize-objects (serial-objects)
   "Return a hash-table of objects deserialized from SERIAL-OBJECTS."
   (let ((binds (make-hash-table)))
@@ -1495,7 +1495,7 @@ Workgroups saves it.  This advice freezes `wg-current-wconfig' in
 its correct state, prior to any window-config changes caused by
 `s-b-k-e'."
   (wg-with-current-wconfig nil (wg-frame-to-wconfig)
-                           ad-do-it))
+    ad-do-it))
 
 (defadvice select-frame (before wg-update-current-workgroup-working-wconfig)
   "Update `selected-frame's current workgroup's working-wconfig.
@@ -1852,10 +1852,10 @@ as Workgroups' command remappings."
   (wg-with-gensyms (dir-sym l1 t1 r1 b1)
     (wg-dbind (ls1 hs1 lb1 hb1) spec
       `(wg-with-edges ,wtree (,l1 ,t1 ,r1 ,b1)
-                      (cond (,dir (let ((,ls1 ,l1) (,hs1 ,r1) (,lb1 ,t1) (,hb1 ,b1))
-                                    ,@body))
-                            (t    (let ((,ls1 ,t1) (,hs1 ,b1) (,lb1 ,l1) (,hb1 ,r1))
-                                    ,@body)))))))
+         (cond (,dir (let ((,ls1 ,l1) (,hs1 ,r1) (,lb1 ,t1) (,hb1 ,b1))
+                       ,@body))
+               (t    (let ((,ls1 ,t1) (,hs1 ,b1) (,lb1 ,l1) (,hb1 ,r1))
+                       ,@body)))))))
 
 (defun wg-set-bounds (w dir ls hs lb hb)
   "Set W's edges in DIR with bounds LS HS LB and HB."
@@ -1901,17 +1901,17 @@ as Workgroups' command remappings."
 (defun wg-w-size (w &optional height)
   "Return the width or height of W, calculated from its edge list."
   (wg-with-edges w (l1 t1 r1 b1)
-                 (if height (- b1 t1) (- r1 l1))))
+    (if height (- b1 t1) (- r1 l1))))
 
 (defun wg-adjust-w-size (w width-fn height-fn &optional new-left new-top)
   "Adjust W's width and height with WIDTH-FN and HEIGHT-FN."
   (wg-with-edges w (left top right bottom)
-                 (let ((left (or new-left left)) (top (or new-top top)))
-                   (wg-set-edges (wg-copy-w w)
-                                 (list left
-                                    top
-                                    (+ left (funcall width-fn  (- right  left)))
-                                    (+ top  (funcall height-fn (- bottom top))))))))
+    (let ((left (or new-left left)) (top (or new-top top)))
+      (wg-set-edges (wg-copy-w w)
+                    (list left
+                       top
+                       (+ left (funcall width-fn  (- right  left)))
+                       (+ top  (funcall height-fn (- bottom top))))))))
 
 (defun wg-scale-w-size (w width-scale height-scale)
   "Scale W's size by WIDTH-SCALE and HEIGHT-SCALE."
@@ -2052,24 +2052,24 @@ new wlist, return it instead of a new wtree."
     (wg-with-slots wtree ((dir wg-wtree-dir)
                           (wlist wg-wtree-wlist))
       (wg-with-bounds wtree dir (ls1 hs1 lb1 hb1)
-                      (let* ((min-size (wg-min-size dir))
-                          (max (- hb1 1 min-size))
-                          (lastw (-last-item wlist)))
-                        (cl-labels
-                            ((mapwl
-                              (wl)
-                              (wg-dbind (sw . rest) wl
-                                (cons (wg-normalize-wtree
-                                    (wg-set-bounds
-                                     sw dir ls1 hs1 lb1
-                                     (setq lb1 (if (eq sw lastw) hb1
-                                              (let ((hb2 (+ lb1 (wg-w-size sw dir))))
-                                                (if (>= hb2 max) hb1 hb2))))))
-                                   (when (< lb1 max) (mapwl rest))))))
-                          (let ((new (mapwl wlist)))
-                            (if (not (cdr new)) (car new)
-                              (setf (wg-wtree-wlist wtree) new)
-                              wtree))))))))
+        (let* ((min-size (wg-min-size dir))
+            (max (- hb1 1 min-size))
+            (lastw (-last-item wlist)))
+          (cl-labels
+              ((mapwl
+                (wl)
+                (wg-dbind (sw . rest) wl
+                  (cons (wg-normalize-wtree
+                      (wg-set-bounds
+                       sw dir ls1 hs1 lb1
+                       (setq lb1 (if (eq sw lastw) hb1
+                                (let ((hb2 (+ lb1 (wg-w-size sw dir))))
+                                  (if (>= hb2 max) hb1 hb2))))))
+                     (when (< lb1 max) (mapwl rest))))))
+            (let ((new (mapwl wlist)))
+              (if (not (cdr new)) (car new)
+                (setf (wg-wtree-wlist wtree) new)
+                wtree))))))))
 
 (defun wg-scale-wtree (wtree wscale hscale)
   "Return a copy of WTREE with its dimensions scaled by WSCALE and HSCALE.
@@ -3953,15 +3953,15 @@ current command."
   (wg-flag-workgroup-modified workgroup)
   (setf (wg-workgroup-selected-frame-wconfig workgroup) wconfig)
   (wg-with-undo workgroup (state undo-pointer undo-list)
-                (setcar (nthcdr undo-pointer undo-list) wconfig)))
+    (setcar (nthcdr undo-pointer undo-list) wconfig)))
 
 (defun wg-add-wconfig-to-undo-list (workgroup wconfig)
   "Add WCONFIG to WORKGROUP's undo list, truncating its future if necessary."
   (wg-with-undo workgroup (state undo-pointer undo-list)
-                (let ((undo-list (cons nil (nthcdr undo-pointer undo-list))))
-                  (awhen (nthcdr wg-wconfig-undo-list-max undo-list) (setcdr it nil))
-                  (setf (wg-workgroup-state-undo-list state) undo-list))
-                (setf (wg-workgroup-state-undo-pointer state) 0))
+    (let ((undo-list (cons nil (nthcdr undo-pointer undo-list))))
+      (awhen (nthcdr wg-wconfig-undo-list-max undo-list) (setcdr it nil))
+      (setf (wg-workgroup-state-undo-list state) undo-list))
+    (setf (wg-workgroup-state-undo-pointer state) 0))
   (wg-set-workgroup-working-wconfig workgroup wconfig))
 
 (defun wg-workgroup-working-wconfig (workgroup &optional noupdate)
@@ -3973,7 +3973,7 @@ return WORKGROUP's current undo state."
   (if (and (not noupdate) (wg-current-workgroup-p workgroup))
       (wg-set-workgroup-working-wconfig workgroup (wg-current-wconfig))
     (wg-with-undo workgroup (state undo-pointer undo-list)
-                  (nth undo-pointer undo-list))))
+      (nth undo-pointer undo-list))))
 
 (defun wg-update-current-workgroup-working-wconfig ()
   "Update `selected-frame's current workgroup's working-wconfig with `wg-current-wconfig'."
@@ -3992,11 +3992,11 @@ Skip undo when NOUNDO."
 Also restore the wconfig at the incremented undo-pointer if
 WORKGROUP is current."
   (wg-with-undo workgroup (state undo-pointer undo-list)
-                (let ((new-pointer (+ undo-pointer increment)))
-                  (when (wg-within new-pointer 0 (length undo-list))
-                    (when (wg-current-workgroup-p workgroup)
-                      (wg-restore-wconfig-undoably (nth new-pointer undo-list) t))
-                    (setf (wg-workgroup-state-undo-pointer state) new-pointer)))))
+    (let ((new-pointer (+ undo-pointer increment)))
+      (when (wg-within new-pointer 0 (length undo-list))
+        (when (wg-current-workgroup-p workgroup)
+          (wg-restore-wconfig-undoably (nth new-pointer undo-list) t))
+        (setf (wg-workgroup-state-undo-pointer state) new-pointer)))))
 
 (defun wg-undoify-window-configuration-change ()
   "Conditionally `wg-add-wconfig-to-undo-list'.
